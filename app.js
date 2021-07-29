@@ -83,26 +83,20 @@ app.post('/addDonationForm', (req, res) => {
   });
 });
 
-// app.get('/thanks', (req,res) => {
-//   res.render('thanks');
-// });
 
-// app.post('/thanks', (req,res) =>{
-//   console.log(req.body); /* req.body is data from user form ->
-//   fname: 'a',
-//   lname: 'f',
-//   email: 'alicefisher100@gmail.com',
-//   supply: 'scissors'
-//   */ 
-//   res.redirect('/thanks');
-// });
 
 app.get('/donors', (req,res) => {
   // access and query database - SELECT class_period, first_name, last_name, supply
   // sort by period, then by last name
   // convert to array of objects called donors
-  donors = fakedata.donors;
-  res.render('donors', {donors});
+  let query1 = "SELECT donor_period, donation_id, donor_fname, donor_lname, supply_name\
+    Donations JOIN Supplies ON Donations.supply_id = Supplies.supply_id;";
+  db.pool.query(query1, (err, results, field) => {
+    let data = {};
+    data.donors = results;
+    res.render('donors', data);
+  })
+
 })
 
 app.get('/updateDonation', (req,res) => {
