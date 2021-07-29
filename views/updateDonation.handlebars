@@ -1,0 +1,23 @@
+<h1>Update a Donation Confirmation</h1>
+
+<form action = '/updateDonation' method = 'post'>
+ <ul><li>Enter your first name, last name, and the donation ID you received in the email sent after you submitted a donation form.</li>
+ <li>Select a supply item from the dropdown menu that is still needed. </li>
+ <li>Then press submit. </li>
+</ul>
+<p>A confirmation message will be emailed to you. </p>
+    <label for id='fname'>First name: </label><input text = 'text' name = 'fname' required ><br>
+    <label for id='lname'>Last name: </label><input text = 'text' name = 'lname' required ><br>
+    <label for id='donation_id' >Donation ID:  </label><input type='number' name = 'donation_id' required> <br>
+    <label for id='supply_id'>Supplies:  </label><select name = 'supply_id' required>
+        <option value ="" disabled selected> Select a supply item below</option>
+        {{#each supplies}}
+            {{#if this.quantity_still_needed}}
+                <option value = {{this.supply_id}}>{{this.supply_name}}</option>
+            {{/if}}
+        {{/each}}
+    </select><br>
+    <input type="submit"></input>   
+</form>
+<div id = 'msg'>{{msg}}</div><br>
+<button><a href='/'>Back to Home</a></button>

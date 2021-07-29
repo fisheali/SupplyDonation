@@ -1,0 +1,45 @@
+<h1 >Donate Supplies to Ms. Fisher's Classroom</h1>
+<h2> Supplies List</h2>
+<p>Thank you for taking time to visit this web page and donating a needed classroom supply item.<br>
+The donated supplies will help the teaching and learning of computer science be more interactive and meaningful!</p>
+<table>
+    <tr id='table_header'><td>Supply</td><td>Total Quantity Needed</td><td>Quantity Still Needed</td></tr>
+    {{#each supplies}}
+        <tr><td>{{this.supply_name}}</td><td>{{this.total_quantity_needed}} </td><td>{{this.quantity_still_needed}}</td></tr>
+    {{/each}}   
+</table>
+
+<form action = '/addDonationForm' method = 'post'>
+ <h2>Donate a Supply Item</h2>
+ <ul><li>Enter your first name, last name, email address and class period.</li>
+ <li>Select a supply item from the dropdown menu that is still needed. </li>
+ <li>Then press submit. </li>
+</ul>
+<p>A confirmation message will be emailed to you. </p>
+
+    <label for id='fname' >First name:  </label><input type = 'text' name = 'fname' required> <br>
+    <label for id='lname' >Last name:  </label><input type = 'text' name = 'lname' required> <br>
+    <label for id='email' >Email:  </label><input type='email' name = 'email' required> <br>
+    <label for id='period' >Class Period:  </label><select name='period' required><br>    
+    <option value="" disabled selected> Select a class period</option>
+    <option value=1>1st</option>
+    <option value=2>2nd</option>
+    <option value=4>4th</option>
+    <option value=5>5th</option>
+    <option value=6>6th</option>
+    <option value=-1>N/A</option>
+    </select><br>
+    <label for id='supply'>Supplies:  </label><select  name = 'supply_id' required>
+        <option value ="" disabled selected> Select a supply item below</option>
+        {{#each supplies}}
+            {{#if this.quantity_still_needed}}
+                <option value = {{this.supply_id}}>{{this.supply_name}}</option>
+            {{/if}}
+        {{/each}}
+    </select>
+    <input id='submit_button' type="submit"></input>
+ 
+</form>
+
+<h2><a href='/updateDonation'>Update</a> a Donation Form | <a href='/deleteDonation'>Delete</a> a Donation Form </h2>
+
