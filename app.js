@@ -154,42 +154,73 @@ app.post('/updateDonation', (req,res) => {
       console.log('old_supply_id ', old_supply_id);    
       let new_supply_id = parseInt(req.body.supply_id);
       console.log('new_supply_id ', new_supply_id);
-      // increment quantity_still_needed of old supply_id
-      let query3 = `Update Supplies SET quantity_still_needed = quantity_still_needed - 1 WHERE supply_id = "${new_supply_id}";`
-      db.pool.query(query3, (err, rows, fields) => {
-        if(err)
-        {
-          console.log(err);
-          res.sendStatus(400);
-        }
-      });
-      let query4 = `Update Supplies SET quantity_still_needed = quantity_still_needed + 1 WHERE supply_id = "${old_supply_id}";`
-      db.pool.query(query4, (err, rows, fields) => {
-        if(err)
-        {
-          console.log(err);
-          res.sendStatus(400);
-        }
-      });
-      let query4 = `Update Donation SET supply_id = "${new_supply_id}" WHERE donation_id = "${donation.donation_id}";`
-      db.pool.query(query4, (err, rows, fields) => {
-        if(err)
-        {
-          console.log(err);
-          res.sendStatus(400);
-        }
-      });
       // decrement quantity_still_needed of new supply_id
+      // increment quantity_still_needed of old supply_id
       // update donation with donation_id
-      // send confirmation email
+      let query3 = `Update Supplies SET quantity_still_needed = quantity_still_needed - 1\
+          WHERE supply_id = "${new_supply_id}";` ;
+      db.pool.query(query3, (err, results, fields) => {
+        if(err)
+        {
+          console.log(err);
+          res.sendStatus(400);
+        }
+        else
+        {
+          console.log('inside query4')
+          let query4 = `Update Supplies SET quantity_still_needed = quantity_still_needed + 1\
+          WHERE supply_id = "${old_supply_id}";`;
+          db.pool.query(query4, (err, rows, fields) => {
+            if(err)
+            {
+              console.log(err);
+              res.sendStatus(400);
+            }
+            else
+            {
+              console.log('inside query5')
 
-      // go to thanks page
-      let data = {};
-      data.fname = donation.donor_fname;
-      data.supply_name = donation.supply_name;
-      data.donation_id = donation.donation_id;
-      console.log('data ',data);
-      res.render('thanks', data);
+              let query5 = `Update Donations SET supply_id = ${new_supply_id} WHERE donation_id = ${donation.donation_id};`
+              console.log('query5 ', query5);
+              db.pool.query(query5, (err, results, fields) => {
+                if(err)
+                {
+                  console.log(err);
+                  res.sendStatus(400);
+                }
+                else
+                {
+                  let query6 = `SELECT supply_name FROM Supplies WHERE supply_id = ${new_supply_id};`;
+                  console.log('query6 ', query6);
+                  db.pool.query(query6, (err, results, fields) => {
+                    if(err)
+                    {
+                      console.log(err);
+                      res.sendStatus(400);
+                    }
+                    else
+                    {    
+                      // send confirmation email
+                      let data = {};
+                      data.supply_name = results[0].supply_name;
+                      data.email = donation.donor_email;
+                      data.fname = donation.donor_fname;
+                      data.lname = donation.donor_lname;
+                      data.donation_id = donation.donation_id;
+                
+                      // send confirmation email using Scott's microservice
+                      // includes info in data above
+
+                      console.log('data ',data);
+                      res.render('thanks', data);
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }        
+      });
     }
   });
 });
