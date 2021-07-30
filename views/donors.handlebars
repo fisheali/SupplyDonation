@@ -2,8 +2,10 @@
 <table>
     <tr id='table_header'><td>Class Period</td><td>Last name</td><td>First name</td><td>Supply</td></tr>
     {{#each donors}}
-        <tr><td>{{this.class_period}}</td><td>{{this.last_name}}</td><td>{{this.first_name}} </td><td>{{this.supply}}</td></tr>
+        <tr><td>{{this.donor_period}}</td><td>{{this.donor_lname}}</td><td>{{this.donor_fname}} </td><td>{{this.supply_name}}</td>
+        <td><button><a href = "/donors/delete/{{this.donation_id}}">Delete</a></button></td></tr>
     {{/each}}   
 </table>
-<button
-<button><a href='/'>Back to Home</a></button>
+<button>Download CSV</button>
+<p><br><br></p>
+<button class = 'homeButton'><a href='/'>Back to Home</a></button>

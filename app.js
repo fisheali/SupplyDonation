@@ -89,23 +89,61 @@ app.get('/donors', (req,res) => {
   // access and query database - SELECT class_period, first_name, last_name, supply
   // sort by period, then by last name
   // convert to array of objects called donors
-  let query1 = "SELECT donor_period, donation_id, donor_fname, donor_lname, supply_name\
-    Donations JOIN Supplies ON Donations.supply_id = Supplies.supply_id;";
+  let query1 = "SELECT donor_period, donation_id, donor_fname, donor_lname, supply_name FROM\
+    Donations JOIN Supplies ON Donations.supply_id = Supplies.supply_id\
+    ORDER BY donor_period, donor_lname;";
   db.pool.query(query1, (err, results, field) => {
+    console.log('results ', results)
+
+    for(var i=0; i<results.length; i++)
+    {
+      if(results[i].donor_period === -1)
+      {
+        results[i].donor_period = 'N/A';
+      }
+
+    }
     let data = {};
     data.donors = results;
+
     res.render('donors', data);
   })
-
 })
+
+app.get('/donors/delete/:id', (req,res) => {
+  let donation_id = parseInt(req.params.id);
+  query1 = `DELETE FROM Donations WHERE donation_id = ${donation_id};`;
+  db.pool.query(query1, (err, results, field) => {
+    if(err)
+    {
+      console.log(err);
+      res.sendStatus(400);
+    } 
+    else
+    {
+      res.redirect('/donors');
+    }
+  });
+
+});
+
 
 app.get('/updateDonation', (req,res) => {
   // query1 to get list of supplies still needed
   let query1 = 'SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed FROM Supplies ORDER BY supply_name;';
   db.pool.query(query1, (err, results, field) => {
-    let supplies = results;
-    let data = {supplies};
-    res.render('updateDonation', data);
+    if(err)
+    {
+      console.log(err);
+      res.sendStatus(400);
+    }
+    else
+    {
+      let supplies = results;
+      let data = {supplies};
+      res.render('updateDonation', data);
+    }
+
   });    
 })
 
@@ -219,9 +257,72 @@ app.post('/updateDonation', (req,res) => {
   });
 });
 
-app.get('/delete', (req,res) => {
-res.render('delete');
+app.get('/deleteDonation', (req,res) => {
+  res.render('deleteDonation');
 })
+
+app.post('/deleteDonation', (req,res) => {
+  let id = req.body.donation_id;
+  let fname = req.body.fname;
+  let lname = req.body.lname;
+  let query1 = `SELECT donation_id, donor_fname, donor_lname, donor_email, d.supply_id, supply_name\
+    FROM Donations AS d JOIN Supplies AS s ON d.supply_id = s.supply_id\
+    WHERE donation_id = "${id}" AND donor_fname = "${fname}" AND donor_lname = "${lname}";`;
+
+  db.pool.query(query1, (err, results, field) => {
+    console.log(results);
+    let query1_results = results;
+    console.log('query1_results ', query1_results);
+    if(err)
+    {
+      console.log(err);
+      res.sendStatus(400);
+    }
+    else if(query1_results.length == 0)
+    {
+      
+        console.log('no results - id does not match fname and lname');
+        let data = {};   
+        data.msg = 'Your name and donation ID do not match. Please try again.';
+     
+        res.render('deleteDonation', data);
+    }
+    else
+    {
+      console.log('we have a match - correct id is found with fname and lname');
+      let donation = query1_results[0];
+      console.log('query1_results ', donation);
+      let query2 = `DELETE FROM Donations WHERE donation_id = ${donation.donation_id};` ;
+      db.pool.query(query2, (err, results, fields) => {
+        if(err)
+        {
+          console.log(err);
+          res.sendStatus(400);
+        }
+        else  
+        {
+          console.log('inside query3')
+          let query3 = `Update Supplies SET quantity_still_needed = quantity_still_needed + 1\
+          WHERE supply_id = "${donation.supply_id}";`;
+          db.pool.query(query3, (err, rows, fields) => {
+            if(err)
+            {
+              console.log(err);
+              res.sendStatus(400);
+            }
+            else
+            {
+              let data = {};
+              data.supply_name = donation.supply_name;
+              res.render('deleteConfirmation', data );
+            }
+          });
+        }
+      });
+    }
+  });
+});
+
 
 app.post('/update', (req,res) => {
 /* req.body is data from user form ->
@@ -239,7 +340,7 @@ supply: 'scissors'
 })
 
 
-app.post('/delete', (req,res) => {
+app.post('/deleteDonation', (req,res) => {
   /* req.body is data from user form ->
   id: 2
   */ 

@@ -1,17 +1,19 @@
 <h1>Delete a Donation Confirmation</h1>
 
-<form action = '/update' method = 'post'>
+<form action = '/deleteDonation' method = 'post'>
 If you made a mistake in your donation form and would like to delete the confirmation form:
 
- <ul> <li>Enter the confirmation ID you received in the email sent after you submitted a form.</li>
+ <ul> <li>Enter your first name, last name, and the donation ID you received in the email sent
+      after you submitted a donation form.</li>
+
  <li>Then press submit. </li>
 </ul>
 <p>A confirmation message will be emailed to you. </p>
-
-     <label for id='id' >Confirmation ID:  </label><input type='text' name = 'id' required> <br>
-
+    <label for id='fname'>First name: </label><input text = 'text' name = 'fname' required ><br>
+    <label for id='lname'>Last name: </label><input text = 'text' name = 'lname' required ><br>
+     <label for id='donation_id' >Donation ID:  </label><input type='text' name = 'donation_id' required> <br>
     <input type="submit"></input>
     <p><br><br>      </p>
 </form>
-
-<button><a href='/'>Back to Home</a></button>
+<div id = 'msg'>{{msg}}</div><br>
+<button class = 'homeButton'><a href='/'>Back to Home</a></button>
