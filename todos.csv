@@ -1,3 +1,7 @@
-id,first_name,last_name,is_cool
-1,Breanna,Moore,true
-2,Bobby,Nguyen,true
+donor_period,donor_lname,donor_fname,supply_name
+1,Chuma,Winnie,hand sanitizer (pump dispenser)
+2,Crockett,Colin,package of post-it notes
+5,Fisher,John,roll of paper towels
+6,Fisher,Alice,ream of colored paper
+6,Wang,Devin,Clorox wipes
+6,Zhu,Shirley,Clorox wipes

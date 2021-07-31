@@ -8,7 +8,7 @@ a{
   
 }
 
-#msg{
+.msg{
   font-size: 14px;
   color: blue;
   padding: 10px 5px;

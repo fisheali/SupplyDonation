@@ -1,0 +1,20 @@
+<h1>Update a Donation for {{donation.donor_fname}} {{donation.donor_lname}}:</h1>
+
+<form action = '/updateDonation' method = 'post'>
+    <input type = 'hidden' name = 'teacherView' value = '1'> <br>
+    Donation ID: <input type='number' name = 'donation_id' value = {{donation.donation_id}} readonly='readonly'> <br>
+    First name: <input text = 'text' name = 'fname' value = {{donation.donor_fname}} ><br>
+    Last name: <input text = 'text' name = 'lname' value = {{donation.donor_lname}} ><br>    
+    <div class = 'msg'>Your current supply selection is: {{donation.supply_name}}</div>
+    Please select a supply item <select name = 'supply_id' id = 'supply-selector' >
+        <option value = ""  disabled selected>Please select a supply item</option>
+        {{#each supplies}}
+            {{#if this.quantity_still_needed}}
+                <option value = {{this.supply_id}}>{{this.supply_name}}</option>
+            {{/if}}
+        {{/each}}
+    </select><br>
+    <input type="submit"></input>   
+</form>
+<p><br></p>
+<button class = 'homeButton'><a href='/'>Back to Home</a></button>

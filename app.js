@@ -4,11 +4,10 @@ const path = require('path');
 const db = require('./database/db-connector');
 const converter = require('json-2-csv');
 const fs = require('fs');
-
-const fakedata = require('./fakedata');
-
-app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
+
 
 var handlebars = require('express-handlebars').create({defaultLayout:'main'});
 app.engine('handlebars', handlebars.engine);
@@ -21,7 +20,7 @@ app.set('port', 8523);
 app.use('/static', express.static('public')); //middleware
 app.use(express.static(path.join(__dirname, 'public')));
 
-
+// home page - displays table of supplies
 app.get('/', (req,res) => {
   let query1 = 'SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed FROM Supplies ORDER BY supply_name;';
   db.pool.query(query1, (err, results, field) => {
@@ -31,6 +30,7 @@ app.get('/', (req,res) => {
   });     
 });
 
+// students submits form to add donation
 app.post('/addDonationForm', (req, res) => {
   console.log(req.body);
   let data = req.body;
@@ -84,50 +84,7 @@ app.post('/addDonationForm', (req, res) => {
 });
 
 
-
-app.get('/donors', (req,res) => {
-  // access and query database - SELECT class_period, first_name, last_name, supply
-  // sort by period, then by last name
-  // convert to array of objects called donors
-  let query1 = "SELECT donor_period, donation_id, donor_fname, donor_lname, supply_name FROM\
-    Donations JOIN Supplies ON Donations.supply_id = Supplies.supply_id\
-    ORDER BY donor_period, donor_lname;";
-  db.pool.query(query1, (err, results, field) => {
-    console.log('results ', results)
-
-    for(var i=0; i<results.length; i++)
-    {
-      if(results[i].donor_period === -1)
-      {
-        results[i].donor_period = 'N/A';
-      }
-
-    }
-    let data = {};
-    data.donors = results;
-
-    res.render('donors', data);
-  })
-})
-
-app.get('/donors/delete/:id', (req,res) => {
-  let donation_id = parseInt(req.params.id);
-  query1 = `DELETE FROM Donations WHERE donation_id = ${donation_id};`;
-  db.pool.query(query1, (err, results, field) => {
-    if(err)
-    {
-      console.log(err);
-      res.sendStatus(400);
-    } 
-    else
-    {
-      res.redirect('/donors');
-    }
-  });
-
-});
-
-
+// student clicks on update donation option
 app.get('/updateDonation', (req,res) => {
   // query1 to get list of supplies still needed
   let query1 = 'SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed FROM Supplies ORDER BY supply_name;';
@@ -147,10 +104,13 @@ app.get('/updateDonation', (req,res) => {
   });    
 })
 
+// students submits update donation form
 app.post('/updateDonation', (req,res) => {  
   let id = req.body.donation_id;
   let fname = req.body.fname;
   let lname = req.body.lname;
+  let teacherView = req.body.teacherView;
+  console.log('id, fname, lname, teacherView ', id, fname, lname, teacherView)
   let query1 = `SELECT donation_id, donor_fname, donor_lname, donor_email, d.supply_id, supply_name\
     FROM Donations AS d JOIN Supplies AS s ON d.supply_id = s.supply_id\
     WHERE donation_id = "${id}" AND donor_fname = "${fname}" AND donor_lname = "${lname}";`
@@ -244,7 +204,14 @@ app.post('/updateDonation', (req,res) => {
                       // includes info in data above
 
                       console.log('data ',data);
-                      res.render('thanks', data);
+                      if(teacherView=='1')
+                      {
+                        res.redirect('/donors');
+                      }
+                      else
+                      {
+                        res.render('thanks', data);
+                      }
                     }
                   });
                 }
@@ -257,10 +224,13 @@ app.post('/updateDonation', (req,res) => {
   });
 });
 
+
+// student clicks on delete donation option
 app.get('/deleteDonation', (req,res) => {
   res.render('deleteDonation');
 })
 
+// student submits delete donation form request
 app.post('/deleteDonation', (req,res) => {
   let id = req.body.donation_id;
   let fname = req.body.fname;
@@ -324,36 +294,141 @@ app.post('/deleteDonation', (req,res) => {
 });
 
 
-app.post('/update', (req,res) => {
-/* req.body is data from user form ->
-id: 2,
-supply: 'scissors'
-*/ 
-// look up row with ID and update supply in donor database
-// In supplies database:
-// increment still_needed of old supply
-// decrement still_needed of new supply
+// teacher access to all donations table
+app.get('/donors', (req,res) => {
+  // access and query database - SELECT class_period, first_name, last_name, supply
+  // sort by period, then by last name
+  // convert to array of objects called donors
+  let query1 = "SELECT donor_period, donation_id, donor_fname, donor_lname, supply_name FROM\
+    Donations JOIN Supplies ON Donations.supply_id = Supplies.supply_id\
+    ORDER BY donor_period, donor_lname;";
+  db.pool.query(query1, (err, results, field) => {
+    console.log('results ', results)
 
-// send confirmation email with ID, name, supply using microservice
+    for(var i=0; i<results.length; i++)
+    {
+      if(results[i].donor_period === -1)
+      {
+        results[i].donor_period = 'N/A';
+      }
 
+    }
+    let data = {};
+    data.donors = results;
+
+    res.render('donors', data);
+  })
+})
+
+// teacher deletes donation from view all donations table
+app.get('/donors/delete/:id', (req,res) => {
+  let donation_id = parseInt(req.params.id);
+  query1 = `DELETE FROM Donations WHERE donation_id = ${donation_id};`;
+  db.pool.query(query1, (err, results, field) => {
+    if(err)
+    {
+      console.log(err);
+      res.sendStatus(400);
+    } 
+    else
+    {
+      res.redirect('/donors');
+    }
+  });
+});
+
+// teacher updates donation from view all donations table
+app.get('/donors/update/:id', (req,res) => {
+  let id = parseInt(req.params.id); // donation id
+  var data = {};
+  let query1 = `SELECT donation_id, donor_fname, donor_lname, s.supply_id, supply_name\
+   FROM Donations as d JOIN Supplies as s ON s.supply_id = d.supply_id WHERE donation_id = ${id};`;
+  let query2 = "SELECT supply_id, supply_name, quantity_still_needed FROM Supplies;";
+  db.pool.query(query1, (error, results, fields) => {
+    if(error)
+    {
+      console.log(err);
+      res.sendStatus(400);
+    }
+    else
+    {
+      console.log('results from query 1: ', results);
+      data.donation = results[0];
+      db.pool.query(query2, (error, results, fields) => {
+        if(error)
+        {
+          console.log(err);
+          res.sendStatus(400);
+        }     
+        else
+        {
+          data.supplies = results;
+          console.log('data ', data);
+          res.render('updateDonationFromTable', data);
+        }   
+      })
+    }
+  });
 
 })
 
+/*
+// this creates csv file on server 
+app.get('/downloadCSV', (req,res) => {
+  const csvWriter = createCsvWriter({
+    path: 'donors.csv',
+    header: [
+      {id: 'donor_period', title: 'Period'},
+      {id: 'donor_lname', title: 'Last name'},
+      {id: 'donor_fname', title: 'First name'},
+      {id: 'supply_name', title: 'Supply name' }
+    ]
+    
+  });
 
-app.post('/deleteDonation', (req,res) => {
-  /* req.body is data from user form ->
-  id: 2
-  */ 
-  // look up row with ID and update supply in donor database
-  // In supplies database: delete row with matching id
-  // send confirmation email with name.
+  let query1 = 'Select donor_period, donor_lname, donor_fname, supply_name FROM Donations as d JOIN Supplies as s\
+  ON d.supply_id = s.supply_id ORDER BY donor_period, donor_lname;';
+  db.pool.query(query1, (error, results, fields) => {
+    if(error)
+    {
+      console.log(err);
+      res.sendStatus(400);
+    }
+    else
+    {
+      console.log('inside else');
+      console.log('results ', results)
+      csvWriter
+        .writeRecords(results)
+        .then(() => console.log('csv written'));
 
-  res.redirect('/thanks');
-})
+    }
+  });
 
-app.post('/downloadCSV', (req,res) => {
   // query database,  convert to CSV
   // on donors page as an option for teacher
+});
+*/
+// teacher donwload csv from donors page
+app.get('/downloadCSV', (req,res) => {
+  let query1 = 'Select donor_period, donor_lname, donor_fname, supply_name FROM Donations as d JOIN Supplies as s\
+  ON d.supply_id = s.supply_id ORDER BY donor_period, donor_lname;';
+  db.pool.query(query1, (error, results, fields) => {
+    if(error)
+    {
+      console.log(error);
+      res.sendStatus(400);
+    }
+    else
+    {
+      console.log('inside else');
+      console.log('results ', results) 
+      let json = JSON.stringify(results);
+      console.log('/csvmaker?j=' + json);
+
+      res.redirect('/csvmaker?j=' + json);
+    }
+  });
 });
 
 // microservice
