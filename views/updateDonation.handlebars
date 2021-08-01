@@ -1,3 +1,4 @@
+<div class = 'container'>
 <h1>Update a Donation Submission</h1>
 
 <form action = '/updateDonation' method = 'post'>
@@ -18,7 +19,9 @@
             {{/if}}
         {{/each}}
     </select><br>
-    <input type="submit"></input>   
+    <input class='btn btn-outline-primary' type="submit" value = 'Submit'></input>   
+    <p></p>
 </form>
 <div class = 'msg'>{{msg}}</div><br>
-<button class = 'homeButton'><a href='/'>Back to Home</a></button>
+{{!-- <button class = 'homeButton'><a href='/'>Back to Home</a></button> --}}
+</div>

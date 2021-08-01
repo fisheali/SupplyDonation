@@ -1,3 +1,4 @@
+<div class = 'container'>
 <h1>Delete a Donation Confirmation</h1>
 
 <form action = '/deleteDonation' method = 'post'>
@@ -9,11 +10,17 @@ If you made a mistake in your donation form and would like to delete the confirm
  <li>Then press submit. </li>
 </ul>
 <p>A confirmation message will be emailed to you. </p>
-    <label for id='fname'>First name: </label><input text = 'text' name = 'fname' required ><br>
-    <label for id='lname'>Last name: </label><input text = 'text' name = 'lname' required ><br>
-     <label for id='donation_id' >Donation ID:  </label><input type='text' name = 'donation_id' required> <br>
-    <input type="submit"></input>
-    <p><br><br>      </p>
+<div class="row">
+    <div class="col">
+        <label for id='fname'>First name: </label><input class='form-control' text = 'text' name = 'fname' required ><br>
+    </div>
+    <div class="col">
+        <label for id='lname'>Last name: </label><input class='form-control' text = 'text' name = 'lname' required ><br>
+    </div>
+</div>
+     <label for id='donation_id' >Donation ID:  </label><input class='form-control' type='text' name = 'donation_id' required> <br>
+  <input class='btn btn-outline-primary' type="submit" value = 'Submit'></input>   
+    <p>     </p>
 </form>
 <div id = 'msg'>{{msg}}</div><br>
-<button class = 'homeButton'><a href='/'>Back to Home</a></button>
+</div>

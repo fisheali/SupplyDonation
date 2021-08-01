@@ -1,12 +1,14 @@
+<div class = 'container'>
 <h1>Donors List</h1>
-<table>
+<table class='table table-sm'>
     <tr id='table_header'><td>Class Period</td><td>Last name</td><td>First name</td><td>Supply</td><td colspan='2'>Actions</td></tr>
     {{#each donors}}
         <tr><td>{{this.donor_period}}</td><td>{{this.donor_lname}}</td><td>{{this.donor_fname}} </td><td>{{this.supply_name}}</td>
-        <td><button><a href = "/donors/delete/{{this.donation_id}}">Delete</a></button></td>
-         <td><button><a href = "/donors/update/{{this.donation_id}}">Update</a></button></td></tr>
+        <td><button class='btn btn-outline-danger'><a href = "/donors/delete/{{this.donation_id}}">Delete</a></button></td>
+         <td><button class='btn btn-outline-primary'><a href = "/donors/update/{{this.donation_id}}">Update</a></button></td></tr>
     {{/each}}   
 </table>
-<button><a href='/downloadCSV'>Download CSV</a></button>
+<button class='btn btn-outline-primary'><a href='/downloadCSV'>Download CSV</a></button>
 <p><br><br></p>
-<button class = 'homeButton'><a href='/'>Back to Home</a></button>
+
+</div>
