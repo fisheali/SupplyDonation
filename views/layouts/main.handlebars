@@ -4,11 +4,28 @@
     <meta charset="utf-8">
     <title>Classroom Supplies Donation</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/styles.css">
 
-    {{!-- <link rel="stylesheet" href="/css/styles.css"> --}}
-    <script src = "/js/selectSupply.js"><</script>
 </head>
 <body>
+
+<!-- Just an image -->
+<nav class="navbar navbar-expand-sm navbar-light bg-white">
+  <a class="navbar-brand" href="/">
+    <img src="/images/appleHeart.jpg" width="50" height="50" alt="" loading="lazy">
+  </a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#expandme" >
+    <span class="navbar-toggler-icon"></span>
+  </button>  
+  <div class='collapse navbar-collapse' id='expandme'>
+      <div class='navbar-nav'>
+          <a href='/' class='nav-item nav-link'>Donate</a>
+          <a href='/updateDonation' class='nav-item nav-link'>Update</a>
+          <a href='/deleteDonation' class='nav-item nav-link'>Delete</a>         
+      </div>
+  </div>
+</nav>
+
 
         {{{body}}}
 

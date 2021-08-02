@@ -1,4 +1,3 @@
-<a class="btn btn-primary" href="/" role="button">Back to Home</a>
 <div class = 'container'>
 <h1 class='display-4'bg='dark' >Donate Supplies to Ms. Fisher's Classroom</h1>
 
@@ -45,7 +44,7 @@ The donated supplies will help the teaching and learning of computer science be 
         </div>
      </div>
         <label for id='supply'>Supplies:  </label><select  class="form-control" name = 'supply_id' required>
-        <option value ="" disabled selected> Select a supply item below</option>
+        <option value ="" disabled selected> Select a supply item</option>
         {{#each supplies}}
             {{#if this.quantity_still_needed}}
                 <option value = {{this.supply_id}}>{{this.supply_name}}</option>

@@ -409,7 +409,7 @@ app.get('/downloadCSV', (req,res) => {
   // on donors page as an option for teacher
 });
 */
-// teacher donwload csv from donors page
+// teacher download csv from donors page
 app.get('/downloadCSV', (req,res) => {
   let query1 = 'Select donor_period, donor_lname, donor_fname, supply_name FROM Donations as d JOIN Supplies as s\
   ON d.supply_id = s.supply_id ORDER BY donor_period, donor_lname;';
@@ -432,6 +432,7 @@ app.get('/downloadCSV', (req,res) => {
 });
 
 // microservice
+
 app.get('/csvmaker', (req,res) => {
   // take JSON from req, convert to CSV format, then save it to server disk, res.download([include name of file])
   console.log('in /csvmaker route');
@@ -457,6 +458,7 @@ app.get('/csvmaker', (req,res) => {
       
   });  
 });
+
 
 app.use((req,res) => {
   res.status(404).send();

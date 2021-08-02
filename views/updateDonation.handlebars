@@ -7,11 +7,23 @@
  <li>Then press submit. </li>
 </ul>
 <p>A confirmation message will be emailed to you. </p>
+
+
     <input type = 'hidden' name = 'teacherView' value = '0'> <br>
-    <label for id='fname'>First name: </label><input text = 'text' name = 'fname' required ><br>
-    <label for id='lname'>Last name: </label><input text = 'text' name = 'lname' required ><br>
-    <label for id='donation_id' >Donation ID:  </label><input type='number' name = 'donation_id' required> <br>
-    <label for id='supply_id'>Supplies:  </label><select name = 'supply_id' required>
+<div class="row">
+    <div class="col">
+    <label for id='fname'>First name: </label><input class = 'form-control' text = 'text' name = 'fname' required ><br>
+    </div>
+    <div class="col">
+    <label for id='lname'>Last name: </label><input class = 'form-control' text = 'text' name = 'lname' required ><br>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+    <label for id='donation_id' >Donation ID:  </label><input class = 'form-control' type='number' name = 'donation_id' required> <br>
+    </div>
+    <div class="col">
+    <label for id='supply_id'>Supplies:  </label><select class = 'form-control' name = 'supply_id' required>
         <option value ="" disabled selected> Select a supply item </option>
         {{#each supplies}}
             {{#if this.quantity_still_needed}}
@@ -19,6 +31,8 @@
             {{/if}}
         {{/each}}
     </select><br>
+    </div>
+</div>
     <input class='btn btn-outline-primary' type="submit" value = 'Submit'></input>   
     <p></p>
 </form>

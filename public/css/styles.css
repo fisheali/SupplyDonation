@@ -1,4 +1,4 @@
-.home{
+/* .home{
   position: fixed;
   top: 0;
   left:0;
@@ -6,7 +6,7 @@
   margin-left: auto;
   margin-right: auto;
 
-}
+} */
 /* body{
     background-color: aliceblue
 }
@@ -24,16 +24,15 @@ a{
   display: block;
   font-weight: bold;
 
-
-
-
-
 }
+*/
+
 .standoutText {
   font-weight: bold;
   color: blue;
 
 }
+/*
 .homeButton{
   font-size: 14px;
   background-color: rgb(199, 230, 240);
