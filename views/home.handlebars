@@ -3,21 +3,15 @@
 
 <blockquote class='blockquote'>Thank you for taking time to visit this web page and donating a needed classroom supply item.<br>
 The donated supplies will help the teaching and learning of computer science be more interactive and meaningful!</blockquote>
-<h2> Supplies List</h2>
-<table class='table table-sm'>
-    <tr id='table_header'><td>Supply</td><td>Total Quantity Needed</td><td>Quantity Still Needed</td></tr>
-    {{#each supplies}}
-        <tr><td>{{this.supply_name}}</td><td>{{this.total_quantity_needed}} </td><td>{{this.quantity_still_needed}}</td></tr>
-    {{/each}}   
-</table>
+<p></p>
 
 <form action = '/addDonationForm' method = 'post'>
- <h2 >Donate a Supply Item</h2>
+ <h2 >Submit a Donation Form</h2>
  <ul><li>Enter your first name, last name, email address and class period.</li>
  <li>Select a supply item from the dropdown menu that is still needed. </li>
  <li>Then press submit. </li>
 </ul>
-<p>A confirmation message will be emailed to you. </p>
+<p>A table of supplies and the quantity still needed for each supply is available below.</p>
     <div class='row'>
         <div class='col'> 
             <label for id='fname' >First name:  </label><input class="form-control" type = 'text' name = 'fname' required> <br>
@@ -52,14 +46,21 @@ The donated supplies will help the teaching and learning of computer science be 
         {{/each}}
     </select><br>
 
-    <input class='btn btn-outline-primary' type="submit" value = 'Submit'></input>   
-
+    <input class='btn btn-outline-primary' type="submit" value = 'Submit'></input> 
+    <span>&nbsp &nbsp   * A confirmation message will be emailed to you. 
+    </span>   
  
 </form>
 
 <p><br></p>
 <h2><a href='/updateDonation'>Update</a> a Donation Form | <a href='/deleteDonation'>Delete</a> a Donation Form </h2>
-<p><br><br></p>
+<p><br></p>
 
-
+<h2> Supplies List</h2>
+<table class='table table-sm'>
+    <tr id='table_header'><td>Supply</td><td>Total Quantity Needed</td><td>Quantity Still Needed</td></tr>
+    {{#each supplies}}
+        <tr><td>{{this.supply_name}}</td><td>{{this.total_quantity_needed}} </td><td>{{this.quantity_still_needed}}</td></tr>
+    {{/each}}   
+</table>
 </div>

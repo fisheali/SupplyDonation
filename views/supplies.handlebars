@@ -1,0 +1,31 @@
+<div class = 'container'>
+
+<form action = '/addSupplyForm' method = 'post'>
+ <h2 >Add a Supply Item</h2>
+    <div class='row'>
+        <div class='col'> 
+            <label>Supply Name: </label><input class="form-control" type = 'text' name = 'supply_name' required> <br>
+        </div>
+        <div class='col'>         
+            <label>Total Quantity Needed: </label><input class="form-control" type = 'number' name = 'total_quantity_needed' required> <br>
+        </div>
+    </div>
+ 
+    <input class='btn btn-outline-primary' type="submit" value = 'Submit'></input>   
+ 
+</form>
+<p></p>
+<h1>Supplies List</h1>
+<table class='table table-sm'>
+    <tr id='table_header'><td>Supply</td><td>Total Quantity Needed</td><td>Quantity Still Needed</td><td colspan='2'>Actions</td></tr>
+    {{#each supplies}}
+        <tr><td>{{this.supply_name}}</td><td>{{this.total_quantity_needed}} </td><td>{{this.quantity_still_needed}}</td>
+        <td><button class='btn btn-danger'><a class='text-light' href = "/supplies/delete/{{this.supply_id}}">Delete</a></button></td>
+        <td><button class='btn btn-primary'><a class='text-light' href = "/supplies/update/{{this.supply_id}}">Update</a></button></td></tr>
+    {{/each}}   
+</table>
+
+
+
+
+</div>

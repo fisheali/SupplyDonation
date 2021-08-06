@@ -1,0 +1,32 @@
+<div class = 'container'>
+
+<h1>Update Supply: {{supply.supply_name}}</h1>
+
+<form action = '/updateSupplyFromTable' method = 'post'>
+    <input type = 'hidden' name = 'teacherView' value = '1'> <br>
+<div class="row">
+    <div class="col">
+    First name: <input class = 'form-control' text = 'text' name = 'fname' value = {{supply.supply_name}} ><br>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+    Donation ID: <input class = 'form-control' type='number' name = 'donation_id' value = {{donation.donation_id}} readonly='readonly'> <br>
+    </div>
+    <div class="col">
+    <div class = 'msg'>Your current supply selection is: {{donation.supply_name}}</div>
+    <select class = 'form-control' name = 'supply_id' id = 'supply-selector' >
+        <option value = ""  disabled selected>Please select a supply item</option>
+        {{#each supplies}}
+            {{#if this.quantity_still_needed}}
+                <option value = {{this.supply_id}}>{{this.supply_name}}</option>
+            {{/if}}
+        {{/each}}
+    </select><br>
+    </div>
+</div>
+    <input type="submit"></input>   
+</form>
+<p><br></p>
+</div>
+

@@ -293,6 +293,84 @@ app.post('/deleteDonation', (req,res) => {
   });
 });
 
+// teacher access to supplies table
+app.get('/supplies', (req,res) => {
+  let query1 = 'SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed FROM Supplies ORDER BY supply_name;';
+  db.pool.query(query1, (err, results, field) => {
+    let supplies = results;
+    console.log(supplies);
+    res.render('supplies', {supplies});
+  });    
+});
+
+
+// teacher submits form to add supply to Supplies table
+app.post('/addSupplyForm', (req, res) => {
+  console.log(req.body);
+  let data = req.body;
+  data.total_quantity_needed = parseInt(data.total_quantity_needed);
+  console.log(data);
+  let query1 = `INSERT INTO Supplies (supply_name, total_quantity_needed, quantity_still_needed) \
+    VALUES ("${data.supply_name}", ${data.total_quantity_needed}, ${data.total_quantity_needed});`;
+  //let query1 = "INSERT INTO Supplies (supply_name, total_quantity_needed, quantity_still_needed) VALUES ('glue sticks', 10, 10);";
+
+  db.pool.query(query1,  (err, results) => {
+    if(err)
+    {
+      console.log(err);
+      res.sendStatus(400);
+    }
+    else
+    {
+      console.log('results', results);
+      res.redirect('supplies');
+    }
+  });
+});
+
+
+
+// teacher deletes supply from supplies table
+app.get('/supplies/delete/:id', (req,res) => {
+  let supply_id = parseInt(req.params.id);
+  query1 = `DELETE FROM Supplies WHERE supply_id = ${supply_id};`;
+  db.pool.query(query1, (err, results, field) => {
+    if(err)
+    {
+      console.log(err);
+      res.sendStatus(400);
+    } 
+    else
+    {
+      res.redirect('/supplies');
+    }
+  });
+});
+
+// teacher updates supply from view all supplies table
+app.get('/supplies/update/:id', (req,res) => {
+  let id = parseInt(req.params.id); // supply id
+  var data = {};
+  let query1 = `SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed\
+    FROM Supplies WHERE supply_id = ${id};`;
+  db.pool.query(query1, (error, results, fields) => {
+    if(error)
+    {
+      console.log(err);
+      res.sendStatus(400);
+    }
+    else
+    {
+      console.log('results from query 1: ', results);
+      data.supply = results[0];
+      
+    }
+  });
+
+})
+
+
+
 
 // teacher access to all donations table
 app.get('/donors', (req,res) => {
@@ -409,7 +487,9 @@ app.get('/downloadCSV', (req,res) => {
   // on donors page as an option for teacher
 });
 */
+
 // teacher download csv from donors page
+// this creates csv file on server 
 app.get('/downloadCSV', (req,res) => {
   let query1 = 'Select donor_period, donor_lname, donor_fname, supply_name FROM Donations as d JOIN Supplies as s\
   ON d.supply_id = s.supply_id ORDER BY donor_period, donor_lname;';
