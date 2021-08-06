@@ -17,9 +17,9 @@
 <p></p>
 <h1>Supplies List</h1>
 <table class='table table-sm'>
-    <tr id='table_header'><td>Supply</td><td>Total Quantity Needed</td><td>Quantity Still Needed</td><td colspan='2'>Actions</td></tr>
+    <tr id='table_header'><td>Supply ID</td><td>Supply</td><td>Total Quantity Needed</td><td>Quantity Still Needed</td><td colspan='2'>Actions</td></tr>
     {{#each supplies}}
-        <tr><td>{{this.supply_name}}</td><td>{{this.total_quantity_needed}} </td><td>{{this.quantity_still_needed}}</td>
+        <tr><td>{{this.supply_id}}</td><td>{{this.supply_name}}</td><td>{{this.total_quantity_needed}} </td><td>{{this.quantity_still_needed}}</td>
         <td><button class='btn btn-danger'><a class='text-light' href = "/supplies/delete/{{this.supply_id}}">Delete</a></button></td>
         <td><button class='btn btn-primary'><a class='text-light' href = "/supplies/update/{{this.supply_id}}">Update</a></button></td></tr>
     {{/each}}   

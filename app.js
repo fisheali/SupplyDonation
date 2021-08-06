@@ -34,7 +34,7 @@ app.get('/', (req,res) => {
 app.post('/addDonationForm', (req, res) => {
   console.log(req.body);
   let data = req.body;
-  data.class_period = parseInt(data.class_period);
+  data.period = parseInt(data.period);
   data.supply_id = parseInt(data.supply_id);
   console.log(data);
   let query1 = "INSERT INTO Donations (donor_fname, donor_lname, donor_email, donor_period, supply_id) VALUES (?, ?, ?, ?, ?);";
@@ -52,7 +52,7 @@ app.post('/addDonationForm', (req, res) => {
       let donation_id = results.insertId
       data.donation_id = donation_id;
       // send confirmation email to donor
-      let query2 = `SELECT supply_name FROM Donations JOIN Supplies ON Donations.supply_id = Supplies.supply_id WHERE donation_id="${donation_id}";`;
+      let query2 = `SELECT Supplies.supply_id as supply_id, supply_name FROM Donations JOIN Supplies ON Donations.supply_id = Supplies.supply_id WHERE donation_id="${donation_id}";`;
       db.pool.query(query2,  Object.values(data), (err, rows, fields) => {
         if(err)
         {
@@ -64,7 +64,7 @@ app.post('/addDonationForm', (req, res) => {
           console.log("results of query 2: rows - ", rows);
           let supply_name = rows[0].supply_name;
           data.supply_name = supply_name;
-          console.log('supply_id', data.suppy_id);
+          console.log('supply_id', data.supply_id);
           let query3 = `Update Supplies SET quantity_still_needed = quantity_still_needed - 1 WHERE supply_id = "${data.supply_id}";`
           db.pool.query(query3, (err, rows, fields) => {
             if(err)
@@ -84,7 +84,7 @@ app.post('/addDonationForm', (req, res) => {
 });
 
 
-// student clicks on update donation option
+// student clicks on update donation link on navbar or Donate page
 app.get('/updateDonation', (req,res) => {
   // query1 to get list of supplies still needed
   let query1 = 'SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed FROM Supplies ORDER BY supply_name;';
@@ -104,7 +104,9 @@ app.get('/updateDonation', (req,res) => {
   });    
 })
 
-// students submits update donation form
+// student or teacher submits update donation form
+// student must enter name and ID then updates
+// teacher views prepopulated fields and can select different values to update
 app.post('/updateDonation', (req,res) => {  
   let id = req.body.donation_id;
   let fname = req.body.fname;
@@ -298,7 +300,6 @@ app.get('/supplies', (req,res) => {
   let query1 = 'SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed FROM Supplies ORDER BY supply_name;';
   db.pool.query(query1, (err, results, field) => {
     let supplies = results;
-    console.log(supplies);
     res.render('supplies', {supplies});
   });    
 });
@@ -347,30 +348,51 @@ app.get('/supplies/delete/:id', (req,res) => {
   });
 });
 
-// teacher updates supply from view all supplies table
 app.get('/supplies/update/:id', (req,res) => {
-  let id = parseInt(req.params.id); // supply id
-  var data = {};
+  console.log(req.params.id);
+  let supply_id = parseInt(req.params.id); // supply_id as int
+  console.log(supply_id);
   let query1 = `SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed\
-    FROM Supplies WHERE supply_id = ${id};`;
+  FROM Supplies WHERE supply_id = ${supply_id};`;
   db.pool.query(query1, (error, results, fields) => {
     if(error)
+    {
+      console.log(error);
+      res.sendStatus(400);
+    }
+    else
+    {
+      console.log('results from query 1: ', results);
+      let data = {};
+      data.supply = results[0];
+      res.render('updateSupplyFromTable', data);  
+      
+    }
+  });
+});
+
+// teacher submits update form to update supply
+app.post('/supplies/update', (req,res) => {
+  let supply_id = req.body.supply_id;
+  let supply_name = req.body.supply_name;
+  let total_quantity_needed = req.body.total_quantity_needed;
+  let quantity_still_needed = req.body.quantity_still_needed;
+  let query1 = `Update Supplies SET supply_name="${supply_name}", total_quantity_needed=${total_quantity_needed},\
+    quantity_still_needed=${quantity_still_needed} WHERE supply_id=${supply_id};`
+  console.log(query1);
+
+  db.pool.query(query1, (err, results, field) => {
+    if(err)
     {
       console.log(err);
       res.sendStatus(400);
     }
     else
     {
-      console.log('results from query 1: ', results);
-      data.supply = results[0];
-      
+      res.redirect('/supplies');
     }
   });
-
-})
-
-
-
+});
 
 // teacher access to all donations table
 app.get('/donors', (req,res) => {
@@ -398,10 +420,15 @@ app.get('/donors', (req,res) => {
   })
 })
 
+
 // teacher deletes donation from view all donations table
 app.get('/donors/delete/:id', (req,res) => {
+  // First get supply_id of donation that will be deleted
   let donation_id = parseInt(req.params.id);
-  query1 = `DELETE FROM Donations WHERE donation_id = ${donation_id};`;
+  query1 = `SELECT d.supply_id as supply_id FROM Donations AS d\ 
+  JOIN Supplies AS s ON d.supply_id = s.supply_id\
+  WHERE donation_id = ${donation_id};`;
+  console.log('query 1 ', query1);
   db.pool.query(query1, (err, results, field) => {
     if(err)
     {
@@ -410,7 +437,35 @@ app.get('/donors/delete/:id', (req,res) => {
     } 
     else
     {
-      res.redirect('/donors');
+      console.log('results of query1 ', results);
+      let supply_id = results[0].supply_id;
+      let query2 = `DELETE FROM Donations WHERE donation_id = ${donation_id};`;
+      console.log('query 2 ', query2);
+      db.pool.query(query2, (err, results, fields) => {
+        if(err)
+        {
+          console.log(err);
+          res.sendStatus(400);
+        }
+        else
+        {                    
+          let query3 = `Update Supplies SET quantity_still_needed = quantity_still_needed + 1\
+          WHERE supply_id = "${supply_id}";`;
+          console.log('query 3 ', query3);
+          db.pool.query(query3, (err, rows, fields) => {
+            if(err)
+            {
+              console.log(err);
+              res.sendStatus(400);
+            }
+            else
+            {          
+              res.redirect('/donors');
+            }
+          });
+        }
+      });
+      
     }
   });
 });
@@ -425,7 +480,7 @@ app.get('/donors/update/:id', (req,res) => {
   db.pool.query(query1, (error, results, fields) => {
     if(error)
     {
-      console.log(err);
+      console.log(error);
       res.sendStatus(400);
     }
     else
@@ -435,7 +490,7 @@ app.get('/donors/update/:id', (req,res) => {
       db.pool.query(query2, (error, results, fields) => {
         if(error)
         {
-          console.log(err);
+          console.log(error);
           res.sendStatus(400);
         }     
         else
