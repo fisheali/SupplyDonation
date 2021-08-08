@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const axios = require('axios');
 const path = require('path');
 const db = require('./database/db-connector');
 const converter = require('json-2-csv');
@@ -14,7 +15,7 @@ app.engine('handlebars', handlebars.engine);
 
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
-app.set('port', 8523);
+app.set('port', process.argv[2]);
 
 //Create static file references
 app.use('/static', express.static('public')); //middleware
@@ -51,7 +52,7 @@ app.post('/addDonationForm', (req, res) => {
       console.log(data);
       let donation_id = results.insertId
       data.donation_id = donation_id;
-      // send confirmation email to donor
+
       let query2 = `SELECT Supplies.supply_id as supply_id, supply_name FROM Donations JOIN Supplies ON Donations.supply_id = Supplies.supply_id WHERE donation_id="${donation_id}";`;
       db.pool.query(query2,  Object.values(data), (err, rows, fields) => {
         if(err)
@@ -74,7 +75,31 @@ app.post('/addDonationForm', (req, res) => {
             }
             else
             {
-              res.render('thanks', data);
+              // send confirmation email using Scott's microservice
+              // includes info in data above
+              const item = {
+                "emailTo": data.email,
+                "email": "fisheali@oregonstate.edu",
+                "name": data.fname ,
+                "message": `Thank you for your donation! Please remember to bring your donated supply, ${data.supply_name} to class.\
+                <br>If you made an error in selecting a supply item donation, you can update or delete your donation form on the Donation website.\
+                <br>You will need this unique donation id as a reference: ${data.donation_id}.\
+                <br>Thank you,<br/>Ms. Fisher`,
+                "header": "Confirmation of classroom donation form",
+              };
+
+              console.log(item);
+              axios
+                .post('https://floating-shelf-48098.herokuapp.com/schoolsupplies', item
+                )
+                .then(function(response) {
+                  console.log(response);
+                  res.render('thanks', data);
+                })
+                .catch(function (error) {
+                  console.log(error);
+                  res.sendStatus(400);
+                });              
             }
           })            
         }      
@@ -204,8 +229,15 @@ app.post('/updateDonation', (req,res) => {
                 
                       // send confirmation email using Scott's microservice
                       // includes info in data above
-
-                      console.log('data ',data);
+                      let item = {};
+                      item.emailTo = data.email;
+                      item.email = "fisheali@oregonstate.edu";
+                      item.name = data.fname + " " + data.lname;
+                      item.header = "Confirmation of classroom donation form";
+                      item.message = `Thank you for your donation! Please remember to bring your donated supply, ${data.supply_name} to class.\n
+                      If you made an error in selecting a supply item donation, you can update or delete your donation form on the Donation website: http://flip1.engr.oregonstate.edu:8523/.\n
+                      You will need this unique donation id as a reference: ${data.donation_id}.`;
+                      console.log('msg ',item.message);
                       if(teacherView=='1')
                       {
                         res.redirect('/donors');
@@ -546,7 +578,8 @@ app.get('/downloadCSV', (req,res) => {
 // teacher download csv from donors page
 // this creates csv file on server 
 app.get('/downloadCSV', (req,res) => {
-  let query1 = 'Select donor_period, donor_lname, donor_fname, supply_name FROM Donations as d JOIN Supplies as s\
+  let query1 = 'Select donor_period, donor_lname, donor_fname, supply_name FROM Donations as d \
+  JOIN Supplies as s\
   ON d.supply_id = s.supply_id ORDER BY donor_period, donor_lname;';
   db.pool.query(query1, (error, results, fields) => {
     if(error)
@@ -556,11 +589,7 @@ app.get('/downloadCSV', (req,res) => {
     }
     else
     {
-      console.log('inside else');
-      console.log('results ', results) 
       let json = JSON.stringify(results);
-      console.log('/csvmaker?j=' + json);
-
       res.redirect('/csvmaker?j=' + json);
     }
   });
