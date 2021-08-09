@@ -21,7 +21,7 @@ app.set('port', process.argv[2]);
 app.use('/static', express.static('public')); //middleware
 app.use(express.static(path.join(__dirname, 'public')));
 
-// home page - displays table of supplies
+// home page - displays table of supplies and add donation form for student
 app.get('/', (req,res) => {
   let query1 = 'SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed FROM Supplies ORDER BY supply_name;';
   db.pool.query(query1, (err, results, field) => {
@@ -38,6 +38,7 @@ app.post('/addDonationForm', (req, res) => {
   data.period = parseInt(data.period);
   data.supply_id = parseInt(data.supply_id);
   console.log(data);
+  // add donation to Donations table 
   let query1 = "INSERT INTO Donations (donor_fname, donor_lname, donor_email, donor_period, supply_id) VALUES (?, ?, ?, ?, ?);";
   db.pool.query(query1,  Object.values(data), (err, results) => {
     if(err)
@@ -52,7 +53,7 @@ app.post('/addDonationForm', (req, res) => {
       console.log(data);
       let donation_id = results.insertId
       data.donation_id = donation_id;
-
+      // get name of supply item that is being donated
       let query2 = `SELECT Supplies.supply_id as supply_id, supply_name FROM Donations JOIN Supplies ON Donations.supply_id = Supplies.supply_id WHERE donation_id="${donation_id}";`;
       db.pool.query(query2,  Object.values(data), (err, rows, fields) => {
         if(err)
@@ -66,6 +67,7 @@ app.post('/addDonationForm', (req, res) => {
           let supply_name = rows[0].supply_name;
           data.supply_name = supply_name;
           console.log('supply_id', data.supply_id);
+          // update supply quantity_still_needed by decrementing by 1
           let query3 = `Update Supplies SET quantity_still_needed = quantity_still_needed - 1 WHERE supply_id = "${data.supply_id}";`
           db.pool.query(query3, (err, rows, fields) => {
             if(err)
@@ -126,8 +128,9 @@ app.post('/addDonationForm', (req, res) => {
   
 // });
 
+// student goes to update donation page
 app.get('/updateDonation', (req,res) => {
-  // query1 to get list of supplies still needed
+  // query1 to get list of supplies still needed to dynamically populate supplies dropdown
   let query1 = 'SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed FROM Supplies ORDER BY supply_name;';
   db.pool.query(query1, (err, results, field) => {
     if(err)
@@ -153,8 +156,14 @@ app.post('/updateDonation', (req,res) => {
   let id = req.body.donation_id;
   let fname = req.body.fname;
   let lname = req.body.lname;
-  let teacherView = req.body.teacherView;
+  let teacherView = req.body.teacherView; 
+  /* 0  is student submission, 1 is teacher submission
+  student submission - > receive confirmation email and gets sent to thanks page after successful submission
+  teacher submission - > no email sent, gets sent back to donors page
+  */
   console.log('id, fname, lname, teacherView ', id, fname, lname, teacherView)
+
+  // check if name and donation ID matches (for student)
   let query1 = `SELECT donation_id, donor_fname, donor_lname, donor_email, d.supply_id, supply_name\
     FROM Donations AS d JOIN Supplies AS s ON d.supply_id = s.supply_id\
     WHERE donation_id = "${id}" AND donor_fname = "${fname}" AND donor_lname = "${lname}";`
@@ -168,8 +177,8 @@ app.post('/updateDonation', (req,res) => {
       console.log(err);
       res.sendStatus(400);
     }
-    else if(query1_results.length == 0)
-    {
+    else if(query1_results.length == 0) // name and donation ID did not match
+    {      
       let query2 = 'SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed\
       FROM Supplies ORDER BY supply_name;';
       db.pool.query(query2, (err, results, field) => {
@@ -178,10 +187,10 @@ app.post('/updateDonation', (req,res) => {
         console.log('no results - id does not match fname and lname');
         data.msg = 'Your name and donation ID do not match. Please try again.';
         data.supplies = query2_results; // an array of rows from Supplies table
-        res.render('updateDonation', data);
+        res.render('updateDonation', data); // data includes error msg
       });
     }
-    else
+    else // name and donation id match
     {
       console.log('we have a match - correct id is found with fname and lname');
       let donation = query1_results[0];
@@ -189,10 +198,8 @@ app.post('/updateDonation', (req,res) => {
       let old_supply_id = donation.supply_id;
       console.log('old_supply_id ', old_supply_id);    
       let new_supply_id = parseInt(req.body.supply_id);
-      console.log('new_supply_id ', new_supply_id);
+      console.log('new_supply_id ', new_supply_id);   
       // decrement quantity_still_needed of new supply_id
-      // increment quantity_still_needed of old supply_id
-      // update donation with donation_id
       let query3 = `Update Supplies SET quantity_still_needed = quantity_still_needed - 1\
           WHERE supply_id = "${new_supply_id}";` ;
       db.pool.query(query3, (err, results, fields) => {
@@ -203,6 +210,7 @@ app.post('/updateDonation', (req,res) => {
         }
         else
         {
+          // increment quantity_still_needed of old supply_id
           console.log('inside query4')
           let query4 = `Update Supplies SET quantity_still_needed = quantity_still_needed + 1\
           WHERE supply_id = "${old_supply_id}";`;
@@ -214,6 +222,7 @@ app.post('/updateDonation', (req,res) => {
             }
             else
             {
+              // update donation with donation_id
               console.log('inside query5')
               let query5 = `Update Donations SET supply_id = ${new_supply_id} WHERE donation_id = ${donation.donation_id};`
               console.log('query5 ', query5);
@@ -225,6 +234,7 @@ app.post('/updateDonation', (req,res) => {
                 }
                 else
                 {
+                  // get supplies for dynamically populated supply dropdown list
                   let query6 = `SELECT supply_name FROM Supplies WHERE supply_id = ${new_supply_id};`;
                   console.log('query6 ', query6);
                   db.pool.query(query6, (err, results, fields) => {
@@ -235,12 +245,11 @@ app.post('/updateDonation', (req,res) => {
                     }
                     else
                     {    
-
-                      if(teacherView=='1')
+                      if(teacherView=='1') // if teacher submitted
                       {
-                        res.redirect('/donors');
+                        res.redirect('/donors'); 
                       }
-                      else
+                      else // if student submitted
                       {
                         let data = {};
                         data.supply_name = results[0].supply_name;
@@ -299,6 +308,7 @@ app.post('/deleteDonation', (req,res) => {
     FROM Donations AS d JOIN Supplies AS s ON d.supply_id = s.supply_id\
     WHERE donation_id = "${id}" AND donor_fname = "${fname}" AND donor_lname = "${lname}";`;
 
+  // student submits fname, lname and donation ID
   db.pool.query(query1, (err, results, field) => {
     console.log(results);
     let query1_results = results;
@@ -308,7 +318,7 @@ app.post('/deleteDonation', (req,res) => {
       console.log(err);
       res.sendStatus(400);
     }
-    else if(query1_results.length == 0)
+    else if(query1_results.length == 0) // if student submits incorrect name and donation ID combo, error msg displayed
     {
       
         console.log('no results - id does not match fname and lname');
@@ -317,11 +327,12 @@ app.post('/deleteDonation', (req,res) => {
      
         res.render('deleteDonation', data);
     }
-    else
+    else // correct name and donation ID submitted
     {
       console.log('we have a match - correct id is found with fname and lname');
       let donation = query1_results[0];
       console.log('query1_results ', donation);
+      // delete donation submission 
       let query2 = `DELETE FROM Donations WHERE donation_id = ${donation.donation_id};` ;
       db.pool.query(query2, (err, results, fields) => {
         if(err)
@@ -331,6 +342,7 @@ app.post('/deleteDonation', (req,res) => {
         }
         else  
         {
+          // update supply quanity_still_needed by incrementing by 1
           console.log('inside query3')
           let query3 = `Update Supplies SET quantity_still_needed = quantity_still_needed + 1\
           WHERE supply_id = "${donation.supply_id}";`;
@@ -406,6 +418,7 @@ app.get('/supplies/delete/:id', (req,res) => {
   });
 });
 
+// teacher click on submit button for supply item in a particular row in supplies table
 app.get('/supplies/update/:id', (req,res) => {
   console.log(req.params.id);
   let supply_id = parseInt(req.params.id); // supply_id as int
@@ -496,6 +509,7 @@ app.get('/donors/delete/:id', (req,res) => {
     else
     {
       console.log('results of query1 ', results);
+      // next delete donation submission
       let supply_id = results[0].supply_id;
       let query2 = `DELETE FROM Donations WHERE donation_id = ${donation_id};`;
       console.log('query 2 ', query2);
@@ -506,7 +520,8 @@ app.get('/donors/delete/:id', (req,res) => {
           res.sendStatus(400);
         }
         else
-        {                    
+        {                   
+          // last update supply quantity_still_needed by incrementing by 1 
           let query3 = `Update Supplies SET quantity_still_needed = quantity_still_needed + 1\
           WHERE supply_id = "${supply_id}";`;
           console.log('query 3 ', query3);
