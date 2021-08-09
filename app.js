@@ -110,6 +110,22 @@ app.post('/addDonationForm', (req, res) => {
 
 
 // student clicks on update donation link on navbar or Donate page
+// app.get('/updateDonation', (req,res) => {
+//   // query1 to get list of supplies still needed
+//   let query1 = 'SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed FROM Supplies ORDER BY supply_name;';
+//   db.pool.query(query1)
+//   .then(results => {
+//     let supplies = results;
+//     let data = {supplies};
+//     res.render('updateDonation', data);
+//   })
+//   .catch(err => {
+//     console.log(err);
+//     res.sendStatus(400);
+//   });
+  
+// });
+
 app.get('/updateDonation', (req,res) => {
   // query1 to get list of supplies still needed
   let query1 = 'SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed FROM Supplies ORDER BY supply_name;';
@@ -127,7 +143,8 @@ app.get('/updateDonation', (req,res) => {
     }
 
   });    
-})
+});
+
 
 // student or teacher submits update donation form
 // student must enter name and ID then updates
@@ -198,7 +215,6 @@ app.post('/updateDonation', (req,res) => {
             else
             {
               console.log('inside query5')
-
               let query5 = `Update Donations SET supply_id = ${new_supply_id} WHERE donation_id = ${donation.donation_id};`
               console.log('query5 ', query5);
               db.pool.query(query5, (err, results, fields) => {
@@ -219,32 +235,42 @@ app.post('/updateDonation', (req,res) => {
                     }
                     else
                     {    
-                      // send confirmation email
-                      let data = {};
-                      data.supply_name = results[0].supply_name;
-                      data.email = donation.donor_email;
-                      data.fname = donation.donor_fname;
-                      data.lname = donation.donor_lname;
-                      data.donation_id = donation.donation_id;
-                
-                      // send confirmation email using Scott's microservice
-                      // includes info in data above
-                      let item = {};
-                      item.emailTo = data.email;
-                      item.email = "fisheali@oregonstate.edu";
-                      item.name = data.fname + " " + data.lname;
-                      item.header = "Confirmation of classroom donation form";
-                      item.message = `Thank you for your donation! Please remember to bring your donated supply, ${data.supply_name} to class.\n
-                      If you made an error in selecting a supply item donation, you can update or delete your donation form on the Donation website: http://flip1.engr.oregonstate.edu:8523/.\n
-                      You will need this unique donation id as a reference: ${data.donation_id}.`;
-                      console.log('msg ',item.message);
+
                       if(teacherView=='1')
                       {
                         res.redirect('/donors');
                       }
                       else
                       {
-                        res.render('thanks', data);
+                        let data = {};
+                        data.supply_name = results[0].supply_name;
+                        data.email = donation.donor_email;
+                        data.fname = donation.donor_fname;
+                        data.lname = donation.donor_lname;
+                        data.donation_id = donation.donation_id;
+                        // send confirmation email using Scott's microservice
+                        const item = {
+                          "emailTo": data.email,
+                          "email": "fisheali@oregonstate.edu",
+                          "name": data.fname ,
+                          "message": `Thank you for your donation! Please remember to bring your donated supply, ${data.supply_name} to class.\
+                          <br>If you made an error in selecting a supply item donation, you can update or delete your donation form on the Donation website.\
+                          <br>You will need this unique donation id as a reference: ${data.donation_id}.\
+                          <br>Thank you,<br/>Ms. Fisher`,
+                          "header": "Confirmation of classroom donation form",
+                        };
+                        console.log(item);
+                        axios
+                          .post('https://floating-shelf-48098.herokuapp.com/schoolsupplies', item
+                          )
+                          .then(function(response) {
+                            console.log(response);
+                            res.render('thanks', data);
+                          })
+                          .catch(function (error) {
+                            console.log(error);
+                            res.sendStatus(400);
+                          });   
                       }
                     }
                   });
@@ -496,8 +522,7 @@ app.get('/donors/delete/:id', (req,res) => {
             }
           });
         }
-      });
-      
+      });      
     }
   });
 });
@@ -536,45 +561,6 @@ app.get('/donors/update/:id', (req,res) => {
   });
 
 })
-
-/*
-// this creates csv file on server 
-app.get('/downloadCSV', (req,res) => {
-  const csvWriter = createCsvWriter({
-    path: 'donors.csv',
-    header: [
-      {id: 'donor_period', title: 'Period'},
-      {id: 'donor_lname', title: 'Last name'},
-      {id: 'donor_fname', title: 'First name'},
-      {id: 'supply_name', title: 'Supply name' }
-    ]
-    
-  });
-
-  let query1 = 'Select donor_period, donor_lname, donor_fname, supply_name FROM Donations as d JOIN Supplies as s\
-  ON d.supply_id = s.supply_id ORDER BY donor_period, donor_lname;';
-  db.pool.query(query1, (error, results, fields) => {
-    if(error)
-    {
-      console.log(err);
-      res.sendStatus(400);
-    }
-    else
-    {
-      console.log('inside else');
-      console.log('results ', results)
-      csvWriter
-        .writeRecords(results)
-        .then(() => console.log('csv written'));
-
-    }
-  });
-
-  // query database,  convert to CSV
-  // on donors page as an option for teacher
-});
-*/
-
 // teacher download csv from donors page
 // this creates csv file on server 
 app.get('/downloadCSV', (req,res) => {
@@ -600,7 +586,6 @@ app.get('/downloadCSV', (req,res) => {
 app.get('/csvmaker', (req,res) => {
   // take JSON from req, convert to CSV format, then save it to server disk, res.download([include name of file])
   console.log('in /csvmaker route');
-  //jsonstring = fakedata.todos; // json array
   var jsonstring = req.query.j;
   console.log("jsonstring: ", jsonstring);
   todos = JSON.parse(jsonstring);
@@ -609,7 +594,6 @@ app.get('/csvmaker', (req,res) => {
       if (err) {
           throw err;
       }
-
       // print CSV string
       console.log(csv);
 
