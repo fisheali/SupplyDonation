@@ -95,9 +95,20 @@ app.post('/addDonationForm', (req, res) => {
                 .post('https://floating-shelf-48098.herokuapp.com/schoolsupplies', item
                 )
                 .then(function(response) {
-                  console.log(response);
-                  res.render('thanks', data);
-                })
+                  console.log(response);  
+                  // breanna's microservice             
+                  axios
+                    .post('http://bmm.prenetic.com:6511/memegenerator', {'topText': `Thank you, ${data.fname}!`, 'bottomText': 'You\'re the best!'}
+                    )
+                    .then(function(response){
+                    console.log(response);                    
+                    data.meme = response.data;                   
+                    })
+                    .catch(function (error) {
+                    console.log(error);
+                    res.sendStatus(400);
+                     });    
+                })                
                 .catch(function (error) {
                   console.log(error);
                   res.sendStatus(400);
@@ -274,7 +285,18 @@ app.post('/updateDonation', (req,res) => {
                           )
                           .then(function(response) {
                             console.log(response);
-                            res.render('thanks', data);
+                            // bobby's microservice - image scraper - related to school
+                            axios
+                            .get('http://flip1.engr.oregonstate.edu:5125/school')
+                            .then(function(response){
+                              console.log(response);
+                              data.img = response.data;
+                              res.render('thanks', data);
+                            })
+                            .catch(function (error) {
+                              console.log(error);
+                              res.sendStatus(400);
+                            });  
                           })
                           .catch(function (error) {
                             console.log(error);
