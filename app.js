@@ -209,10 +209,10 @@ app.post('/updateDonation', (req,res) => {
       let old_supply_id = donation.supply_id;
       console.log('old_supply_id ', old_supply_id);    
       let new_supply_id = parseInt(req.body.supply_id);
-      console.log('new_supply_id ', new_supply_id);   
-      // decrement quantity_still_needed of new supply_id
+      console.log('new_supply_id ', new_supply_id); 
       let query3 = `Update Supplies SET quantity_still_needed = quantity_still_needed - 1\
-          WHERE supply_id = "${new_supply_id}";` ;
+        WHERE supply_id = "${new_supply_id}";` ;      
+      // decrement quantity_still_needed of new supply_id      
       db.pool.query(query3, (err, results, fields) => {
         if(err)
         {
@@ -234,8 +234,19 @@ app.post('/updateDonation', (req,res) => {
             else
             {
               // update donation with donation_id
-              console.log('inside query5')
-              let query5 = `Update Donations SET supply_id = ${new_supply_id} WHERE donation_id = ${donation.donation_id};`
+              console.log('inside query5')             
+
+              let query5;
+              if(teacherView=='1') // if teacher view, can update name and supply item of Donation
+              {
+                query5 = `Update Donations SET supply_id = ${new_supply_id}, donor_fname = "${fname}", donor_lname = "${lname}"\
+                  WHERE donation_id = ${donation.donation_id};`
+              }
+              else
+              {
+                query5 = `Update Donations SET supply_id = ${new_supply_id} WHERE donation_id = ${donation.donation_id};`
+              }
+
               console.log('query5 ', query5);
               db.pool.query(query5, (err, results, fields) => {
                 if(err)
