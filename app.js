@@ -102,7 +102,8 @@ app.post('/addDonationForm', (req, res) => {
                     )
                     .then(function(response){
                     console.log(response);                    
-                    data.meme = response.data;                   
+                    data.img = response.data;       
+                    res.render('thanks', data);            
                     })
                     .catch(function (error) {
                     console.log(error);
@@ -121,24 +122,6 @@ app.post('/addDonationForm', (req, res) => {
   });
 });
 
-
-// student clicks on update donation link on navbar or Donate page
-// app.get('/updateDonation', (req,res) => {
-//   // query1 to get list of supplies still needed
-//   let query1 = 'SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed FROM Supplies ORDER BY supply_name;';
-//   db.pool.query(query1)
-//   .then(results => {
-//     let supplies = results;
-//     let data = {supplies};
-//     res.render('updateDonation', data);
-//   })
-//   .catch(err => {
-//     console.log(err);
-//     res.sendStatus(400);
-//   });
-  
-// });
-
 // student goes to update donation page
 app.get('/updateDonation', (req,res) => {
   // query1 to get list of supplies still needed to dynamically populate supplies dropdown
@@ -155,7 +138,6 @@ app.get('/updateDonation', (req,res) => {
       let data = {supplies};
       res.render('updateDonation', data);
     }
-
   });    
 });
 
@@ -205,11 +187,11 @@ app.post('/updateDonation', (req,res) => {
     {
       console.log('we have a match - correct id is found with fname and lname');
       let donation = query1_results[0];
-      console.log('query1_results ', donation);
+      //console.log('query1_results ', donation);
       let old_supply_id = donation.supply_id;
-      console.log('old_supply_id ', old_supply_id);    
+      //console.log('old_supply_id ', old_supply_id);    
       let new_supply_id = parseInt(req.body.supply_id);
-      console.log('new_supply_id ', new_supply_id); 
+      //console.log('new_supply_id ', new_supply_id); 
       let query3 = `Update Supplies SET quantity_still_needed = quantity_still_needed - 1\
         WHERE supply_id = "${new_supply_id}";` ;      
       // decrement quantity_still_needed of new supply_id      
@@ -221,8 +203,7 @@ app.post('/updateDonation', (req,res) => {
         }
         else
         {
-          // increment quantity_still_needed of old supply_id
-          console.log('inside query4')
+          // increment quantity_still_needed of old supply_id          
           let query4 = `Update Supplies SET quantity_still_needed = quantity_still_needed + 1\
           WHERE supply_id = "${old_supply_id}";`;
           db.pool.query(query4, (err, rows, fields) => {
@@ -233,9 +214,7 @@ app.post('/updateDonation', (req,res) => {
             }
             else
             {
-              // update donation with donation_id
-              console.log('inside query5')             
-
+              // update donation with donation_id     
               let query5;
               if(teacherView=='1') // if teacher view, can update name and supply item of Donation
               {
@@ -246,8 +225,6 @@ app.post('/updateDonation', (req,res) => {
               {
                 query5 = `Update Donations SET supply_id = ${new_supply_id} WHERE donation_id = ${donation.donation_id};`
               }
-
-              console.log('query5 ', query5);
               db.pool.query(query5, (err, results, fields) => {
                 if(err)
                 {
@@ -258,7 +235,6 @@ app.post('/updateDonation', (req,res) => {
                 {
                   // get supplies for dynamically populated supply dropdown list
                   let query6 = `SELECT supply_name FROM Supplies WHERE supply_id = ${new_supply_id};`;
-                  console.log('query6 ', query6);
                   db.pool.query(query6, (err, results, fields) => {
                     if(err)
                     {
@@ -301,7 +277,7 @@ app.post('/updateDonation', (req,res) => {
                             .get('http://flip1.engr.oregonstate.edu:5125/school')
                             .then(function(response){
                               console.log(response);
-                              data.img = response.data;
+                              data.img = response.data; 
                               res.render('thanks', data);
                             })
                             .catch(function (error) {
@@ -364,7 +340,7 @@ app.post('/deleteDonation', (req,res) => {
     {
       console.log('we have a match - correct id is found with fname and lname');
       let donation = query1_results[0];
-      console.log('query1_results ', donation);
+      //console.log('query1_results ', donation);
       // delete donation submission 
       let query2 = `DELETE FROM Donations WHERE donation_id = ${donation.donation_id};` ;
       db.pool.query(query2, (err, results, fields) => {
@@ -410,15 +386,11 @@ app.get('/supplies', (req,res) => {
 
 // teacher submits form to add supply to Supplies table
 app.post('/addSupplyForm', (req, res) => {
-  console.log(req.body);
   let data = req.body;
   data.total_quantity_needed = parseInt(data.total_quantity_needed);
-  console.log(data);
   let query1 = `INSERT INTO Supplies (supply_name, total_quantity_needed, quantity_still_needed) \
     VALUES ("${data.supply_name}", ${data.total_quantity_needed}, ${data.total_quantity_needed});`;
-  //let query1 = "INSERT INTO Supplies (supply_name, total_quantity_needed, quantity_still_needed) VALUES ('glue sticks', 10, 10);";
-
-  db.pool.query(query1,  (err, results) => {
+   db.pool.query(query1,  (err, results) => {
     if(err)
     {
       console.log(err);
@@ -431,8 +403,6 @@ app.post('/addSupplyForm', (req, res) => {
     }
   });
 });
-
-
 
 // teacher deletes supply from supplies table
 app.get('/supplies/delete/:id', (req,res) => {
@@ -453,9 +423,9 @@ app.get('/supplies/delete/:id', (req,res) => {
 
 // teacher click on submit button for supply item in a particular row in supplies table
 app.get('/supplies/update/:id', (req,res) => {
-  console.log(req.params.id);
+  //console.log(req.params.id);
   let supply_id = parseInt(req.params.id); // supply_id as int
-  console.log(supply_id);
+  //console.log(supply_id);
   let query1 = `SELECT supply_id, supply_name, total_quantity_needed, quantity_still_needed\
   FROM Supplies WHERE supply_id = ${supply_id};`;
   db.pool.query(query1, (error, results, fields) => {
@@ -466,7 +436,7 @@ app.get('/supplies/update/:id', (req,res) => {
     }
     else
     {
-      console.log('results from query 1: ', results);
+      //console.log('results from query 1: ', results);
       let data = {};
       data.supply = results[0];
       res.render('updateSupplyFromTable', data);  
@@ -483,7 +453,7 @@ app.post('/supplies/update', (req,res) => {
   let quantity_still_needed = req.body.quantity_still_needed;
   let query1 = `Update Supplies SET supply_name="${supply_name}", total_quantity_needed=${total_quantity_needed},\
     quantity_still_needed=${quantity_still_needed} WHERE supply_id=${supply_id};`
-  console.log(query1);
+  //console.log(query1);
 
   db.pool.query(query1, (err, results, field) => {
     if(err)
@@ -507,8 +477,7 @@ app.get('/donors', (req,res) => {
     Donations JOIN Supplies ON Donations.supply_id = Supplies.supply_id\
     ORDER BY donor_period, donor_lname;";
   db.pool.query(query1, (err, results, field) => {
-    console.log('results ', results)
-
+    //console.log('results ', results)
     for(var i=0; i<results.length; i++)
     {
       if(results[i].donor_period === -1)
@@ -519,7 +488,6 @@ app.get('/donors', (req,res) => {
     }
     let data = {};
     data.donors = results;
-
     res.render('donors', data);
   })
 })
@@ -633,7 +601,6 @@ app.get('/downloadCSV', (req,res) => {
 
 app.get('/csvmaker', (req,res) => {
   // take JSON from req, convert to CSV format, then save it to server disk, res.download([include name of file])
-  console.log('in /csvmaker route');
   var jsonstring = req.query.j;
   console.log("jsonstring: ", jsonstring);
   todos = JSON.parse(jsonstring);
@@ -650,8 +617,7 @@ app.get('/csvmaker', (req,res) => {
       console.log('after writing file');
       res.setHeader('Content-disposition', 'attachment; filename=data.csv');
       res.set('Content-type', 'text/csv');
-      res.status(200).send(csv);
-      
+      res.status(200).send(csv);      
   });  
 });
 
